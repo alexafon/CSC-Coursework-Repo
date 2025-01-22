@@ -1,0 +1,140 @@
+//Homework #2
+//Author: Alexander Gil Afonso
+//Program: Homework 2 Question 1
+//Date Created: February 22nd 
+//Date Last Modified: February 23rd
+//Usage: To calculate checks and get a random generated memo from a pool
+
+#include <iostream>
+#include <string>
+#include <ctime>
+#include <vector>
+using namespace std;
+
+struct Check {
+	int CheckNum;
+	string CheckMemo;
+	float CheckAmount;
+
+	bool operator>(float otherAmount) {
+		return CheckAmount > otherAmount;
+	}
+
+	friend ostream& operator << (ostream& a, const Check& c) {
+		return a << "Check #: " << c.CheckNum << ", The amount: " << c.CheckAmount << ", The memo: " << c.CheckMemo << endl;
+	}
+};
+
+class CheckBook {
+private:
+	float balance;
+	Check* chkPtr;
+	float lastDeposit;
+	int numOfChecks;
+	int checkBookSize;
+
+public:
+	CheckBook() : balance(0.0), numOfChecks(0), checkBookSize(4) {
+		chkPtr = new Check[checkBookSize];
+	}
+
+	CheckBook(float initialBalance) : balance(initialBalance), numOfChecks(0), checkBookSize(2) {
+		chkPtr = new Check[checkBookSize];
+	}
+
+	~CheckBook() {
+		delete[] chkPtr;
+	}
+
+	CheckBook(const CheckBook& co) : balance(co.balance), numOfChecks(co.numOfChecks), checkBookSize(co.checkBookSize) {
+		chkPtr = new Check[checkBookSize];
+		for (int i = 0; i < numOfChecks; ++i) {
+			chkPtr[i] = co.chkPtr[i];
+		}
+	}
+
+	CheckBook& operator=(const CheckBook& ce) {
+		balance = ce.balance;
+		numOfChecks = ce.numOfChecks;
+		checkBookSize = ce.checkBookSize;
+		delete[] chkPtr;
+		chkPtr = new Check[checkBookSize];
+		for (int i = 0; i < numOfChecks; ++i) {
+			chkPtr[i] = ce.chkPtr[i];
+		}
+		return *this;
+	}
+
+	float getBalance() const {
+		return balance;
+	}
+	void setBalance(float NewBalance) {
+		balance = NewBalance;
+	}
+	int getNumOfChecks() const {
+		return numOfChecks;
+	}
+	void setNumOfChecks(int NewNumOfChecks) {
+		numOfChecks = NewNumOfChecks;
+	}
+	int getCheckBookSize() const {
+		return checkBookSize;
+	}
+	void setCheckBookSize(int NewCheckBookSize) {
+		checkBookSize = NewCheckBookSize;
+	}
+
+	void deposit(float amount) {
+		balance += amount;
+	}
+
+	bool writeCheck(Check c_amount) {
+		if (c_amount.CheckAmount <= balance) {
+			const string memos[] = { "Party", "Hospital Bill", "Home Bills", "Insurance Bills", "Ambulance Costs", "Electrical Bill", "Heating Bill", "Water Bill" };
+			srand(time(0));
+			int randIndex = rand() % 8;
+			string selectedMemo = memos[randIndex];
+
+			chkPtr[numOfChecks] = c_amount;
+			chkPtr[numOfChecks].CheckMemo = selectedMemo;
+			balance -= c_amount.CheckAmount;
+			++numOfChecks;
+
+			return true;
+		}
+		return false;
+	}
+
+	void displayChecks() const {
+		for (int i = numOfChecks - 1; i >= 0; --i) {
+			cout << chkPtr[i];
+		}
+	}
+};
+
+void checkTest(CheckBook& cb, float balance) {
+	while (balance > 0) {
+		float checkAmount = 0;
+		cout << "Enter the check amount (0 to end): ";
+		cin >> checkAmount;
+
+		if (checkAmount > 0) {
+			Check c;
+			c.CheckAmount = checkAmount;
+			c.CheckNum = cb.getNumOfChecks();
+
+			if (!cb.writeCheck(c)) {
+				cout << "Negative balance." << endl;
+				break;
+			}
+			balance -= checkAmount;
+		}
+	}
+	cb.displayChecks();
+}
+
+int main() {
+	CheckBook cb(1000);
+	checkTest(cb, 1000);
+	return 0;
+}
